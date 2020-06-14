@@ -1,0 +1,146 @@
+Process and Threads
+Process คือช่วงของโปรแกรมที่แบ่งออกที่กำลังทำงานอยู่ การประมวลผลโปรแกรมในปัจจุบันนี้มีความซับซ้อนมากและยังทำงานพร้อมๆกันหลาย Process ซึงนั่นทำให้ซอฟร์แวร์หรือฮาตร์แวร์ในปัจจุบันมีความซับซ้อนมากต่างจากในอดีต 
+และเมื่อการประมวลผลมีความซับซ้อนโปรแกรมจึงมีการแบ่งออกเป็นช่วงๆ และ Process เป็นส่วนหนึ่งของระบบที่จำเป็นต้องใช้ทรัพยากรของระบบเพื่อให้ทำงานสำเร็จ เช่น เวลา CPU หน่วยความจำ ไหล์ และ อุปกรณ์ I/O เป็นต้น ซึ่งระบบ
+ปฏิบัติการทั้งหลายนี้เป็นตัวจัดการ Process ทั้งหมด เช่นการสร้าง Process ลบ Process การจัดเวลา การซิงโครไนซ์ หรือแม้กระทั้งการสื่อสารทั้งหมดใน Process
+
+Components of Process
+- Process ID เพื่อกำหนดลำดับการประมวลและในแต่ละ Process จะไม่เหมือนกัน
+- Program Code โค้ดคำสั่งที่สามารถนำไปประมวลผลได้ทันที
+- Data เป็น Global Value ที่จะเก็บข้อมูลเพื่อ Support Process สามารถประมวลผล Program ได้
+- Process Control Block (PCB) เป็นเนื้อที่หน่วยความจำที่ประบบกำหนดไว้เพื่อเก็บ Data ที่สำคัญของ Process ไว้
+	Data ใน PCB
+		- Pointer ชี้ตำแหน่งของโปรเซสที่อยู่ในหน่วยความจำ และ ตำแหน่งที่ Process มีอยู่
+		- Process Status สถานะ Process ปัจจุบัน
+		- Process ID
+		- Program Counter ตัวนับที่แสดงที่อยู่ของคำสั่งที่จะไปถูกประมวลผล
+		- Register เก็บสถานะของระบบเมื่อเกิด Interrupt เพื่อให้โปรแกรมทำงานต่อไปได้
+		- CPU Scheduling Information เป็นข้อมูลที่เป็นค่าได้ เป็นข้อมูลความสำคัญของ Process ที่ถูกระบบกำหนดไว้เมื่อ Process ถูกสร้างขึ้นมา
+		- Memory Management Information เป็นหน่วยความจำที่ระบบกำหนดไว้เช่น ขนาดความจำ, Register
+		- Account Information เช่น จำนวน CPU, เวลาที่กำหนด และ Segment table
+		- I/O Status Information แสดงค่า I/O ของอุปกรณ์
+- Program Status Word (PSW) เก็บข้อมูลสถานะและควบคุมลำดับการประมวลผลคำสั่งของ Process
+
+Process State
+- New สร้าง Process ใหม่
+- Ready	Process พร้อมที่จะเข้าไปในส่วนของ CPU
+- Runing กำลังใช้งาน CPU อยู่
+- Wait กำลังรอการทำงาน เช่นรอ Input Output ของอุปกรณ์อยู่
+- Blocked หยุดรอให้เกิดเหตุการณ์บางอย่างขึ้น
+- Terminate สิ้นสุด Process
+
+การจัดการเวลาProcess
+เป็นการจัด Process ให้ทำงานตลอดเวลา เพื่อให้ใช้ประโยชน์ของ CPU ได้สูงที่สุด และ Process ที่ระบบปฏิบัติการสร้างขึ้นมาใหม่จะอยู่ในสถานะ Ready และเก็บอยู่ในคิว เพื่อรอการรันต้องพิจารณาหน่วยความจำของระบบว่ามีเพียงพอหรือไม่
+ซึ่ง Ready Queue จะทำหน้าที่เก็บ Process ในรูปแบบ Linked list ที่ส่วนหัวของคิว ซึ่งประกอบไปด้วย Pointer ของ Process Control Block ในจุดเริ่มต้องและท้ายสุดของ Linked list
+และแต่ละ Process Control Block จะมี Pointer ชี้ไปที่ Process Control Block ตัวต่อๆไปในคิวเรื่อยๆ
+
+Device Queue 
+คิวของ Process ที่รอการตอบสนองจากการใช้อุปกรณ์ Input/Output เรียกว่า “Device Queue” 
+ซึ่งอุปกรณ์แต่ละอันจะมีคิวของตัวเอง ที่มี Pointerเก็บส่วนหัวและส่วนท้ายของ Process Control Block ที่เรียกใช้อุปกรณ์นี้ 
+และในส่วนของ Process Control Block ก็จะมีPointerที่บอกว่า Process Control Block อันไหนในคิวเป็น Process สต่อไปที่จะทำงานต่อ
+
+Context Switch 
+เมื่อ CPU ทำการประมวลผล Process จนเสร็จเรียบร้อยแล้วจะต้องมีการสวิตช์ หรือสลับไปยัง Process ในคิวต่อไป การสวิตช์นี้เรียกว่า "Context Switch" 
+ในช่วงที่ทำการสวิตช์จะไม่มีการทำงานใดๆ ส่วนเวลาที่ใช้ในการสวิตช์จะแตกต่างไปตามเครื่อง เช่นความเร็วของหน่วยเก็บความจำ, จำนวนรีจิสเตอร์ที่ถูกกอปปี้และคำสั่งพิเศษที่มีอยู่ในระบบ โดยทั่วไปความเร็วจะอยู่ระหว่าง 1-1000 Microsecond
+และจะเห็นว่าการสวิตช์จะขึ้นอยู่กับประสิทธิภาพของเครื่อง และเมื่อเครื่องคอมพิวเตอร์มีอุปกรณ์พิเศษอย่างเช่นมีหลาย Register หรือมีหลาย CPU การจัดการอุปกรณ์เหล่านี้ได้ต้องมีระบบปฏิบัติการที่ดีด้วย 
+และเนื่องจากข้อจำกัดของอุปกรณ์ Hardware ทำให้เกิดปัญหาคอขวดขึ้น เพื่อแก้ไขปัญหานี้จึงมีการเพิ่มประสิทธิภาพโครงสร้างใหม่ที่เรียกว่า Thread ขึ้นมาเพื่อแก้ไข
+
+Operation of Process
+Process ในระบบที่ Execute ได้พร้อมกัน จะต้องมีการสร้างและลบตลอดเวลา ระบบปฎิบัติการเป็นตัวดำเนินการ
+	Process Creation
+		Processอันนึงอาจสร้าง Process ใหม่ขึ้น โดยการใช้คำสั่งที่เรียกว่าระบบ Process Creation และ Process ใหม่ ที่เกิดขึ้นมานั้นอาจจะสร้าง Process ใหม่อื่นๆ ต่อไปได้อีก
+	Process Termination
+		การสิ้นสุดProcess จะเกิดได้เมื่อ Process สิ้นสุดการทำงาน หรือ ถูกยกเลิก Process ซึ่ง Process termination สามารถแบ่งได้เป็น 2 คำสั่ง
+		Exit : ออกจาก Process เมื่อจบการทำงาน และจะคืนDataทั้งหมดให้กับ OS
+		Abort : ยกเลิก Process ที่ทำอยู่ โดยสาเหตุการเกิด 
+			- Process Child Process ใช้ทรัพยากรมากเกินไป
+			- Process Parent ต้องการหยุดการทำงาน Child Process
+			- Process Parent ทำงานเสร็จก่อน ทำให้ต้องหยุดการทำงาน Child Process
+Cooperating Process
+Process จะเป็น Process สื่อประสานถ้าProcessนั้นมีผลกระทบหรือได้รับผลกระทบจากProcessอื่นที่Executeอยู่ในระบบนั้น หรือจะบอกได้ว่าProcessสื่อประสานจะมีการแชร์ข้อมูลกับProcessอื่นในระบบ
+โดยระบบปฏิบัติการจะต้องแชร์หน่วยความจำไว้ใช้งาน เนื้อที่หน่วยความจำส่วนนั้นคือ Buffer
+
+การจัดBuffer
+ในการสร้างลิงค์นอกจากจะเป็นการกำหนดเส้นทางข้อมูลแล้วลิงค์ยังมีความจุที่เป็นตัวเลขแสดงจำนวนแมสเสจที่สามารถเก็บไว้ชั่วคราวได้คุณสมบัตินี้อาจจะมองว่าเป็นคิวของแมสเสจที่ผูกติดลิงค์ก็ได้ โดยพื้นฐานจะมีความจุ 3 ลักษณะ คือ
+- Zero capacity ความจุแบบนี้จำให้คิวมีขนาดสูงสุดเป็น 0 ดังนั้นลิงค์จะไม่มีMessageอยู่เลย ในกรณีนี้ผู้ส่งจะต้องรอจนกว่าผู้รับMessage โปรเซสทั้งสองจะต้อง Synchronizeเพื่อให้เกิดการถ่ายโอนMessage “Rendezvous”
+- Boundd capacity ความจุแบบี้จะทำให้คิวมีขนาดคงที่เป็น n ดังนั้นจะมีMessageได้สูงสุด n Messageที่เก็บในคิวได้ถ้าคิวยังไม่เต็มเมื่อMessageใหม่ถูกส่งเข้ามา หลังจากนั้นก็เข้าไปอยู่ในคิว
+- Unbounded capacity ความจุแบบนี้ทำให้คิวมีขนาดใหญ่ไม่คงที่ทำให้Messageถูกเก็บไว้ได้เสมอ ผู้ส่งไม่ต้องรอเวลาเลย
+
+Fork Process
+Fork เป็นฟังก์ชั่นที่ใช้เรียก System call ของระบบปฏิบัติการที่ใช้ในการสร้าง Process โดย Process นั้นจะถูกเรียกว่า Child Process 
+และทั้งสอง Process จะทำงานต่อเมื่อสร้างขึ้นมาสำเร็จ,โดยฟังก์ชั่น Fork ไม่ต้องการอาร์กิวเมนต์และจะให้ค่า Process ID (PID) คืนกลับมา
+
+Thread
+Thread คือ หน่วยการทำงานย่อย ที่ทำงานอยู่ในตัว Process ซึ่ง สามารถแบ่ง Thread ได้เป็น 2 แบบ  
+Single thread ก็คือ มี 1 Thread ใน 1 Process
+Multithread ก็คือ มี Thread หลายตัว ทำงานอยู่ใน Process 
+ข้อดีของ Thread ก็คือสามารถดึงประสิทธิภาพการทำงานของ Multi CPU หรือ Multi Core ได้ เนื่องจากเราสามารถเรียกใช้ Thread ในการทำงานหลายๆตัวพร้อมกันได้นั่นเอง
+
+Components of Thread
+- Threads ID หมายเลขเธรดที่อยู่ในโพรเซส
+- Counter ตัวนับเพื่อติดตามคำสั่งที่จะถูกดำเนินการเป็นลำดับถัดไป
+- Register หน่วยความจำเก็บค่าตัวแปรที่ทำงานอยู่ปัจจุบัน
+- Stack เก็บประวัติการทำงาน
+
+Thread State
+- New Thread
+- Start
+- Run
+
+Compare Between Single thread and Multithread 
+Multithread มีความสามารถที่ดีกว่าเพราะโครงสร้างของมันเอื้อให้งานย่อยภายใน  Process สามารถทำงานร่วมกันและประสานจังหวะการทำงานและใช้ทรัพยากรของ Process ร่วมกัน
+Thread มี 2 ส่วนที่สัมพันธ์กัน ซึ่งได้แก่ Kernel Thread และ User Thread โดย Kernel Thread จะรองรับการทำงานของ User Thread
+การที่ถูกจัดการโดยตรงจาก OS Kernel จะจัดสรรและจัดการ Thread ภายในพื้นที่ของ Kernel เอง เนื่องจากระบบปฏิบัติการเป็นผู้จัดการเกี่ยวกับการสร้างและจัดการ Thread เอง
+การที่ถูกจัดการโดยตรงจาก User โดยตรงผ่าน Library ซึ่ง Thread ทั้งหมดจะถูกจัดการให้เสร็จสิ้นภายในพื้นที่ของ User โดยไม่จำเป็นต้องใช้ Kernel
+ใน Kernel Level ตัว Kenel จะเห็นการทำงานของทั้งตัว Process และ Thread ทั้งหมด ในขณะที่ User Level จะเห็นเพียงตัว Process อีกทั้ง Kernel Thread จะทำงานได้ช้ากว่าเนื่องจากต้องถูกจัดการตามลำดับตามที่ OS กำหนดไว้
+
+Multithreading Models
+
+Many-to-One
+การจัดการThreadจะอยู่ในพื้นที่ของ User แต่ถ้าเกิดการ Block System call จะส่งผลให้ Process ทั้งหมดจะถูก Block ไปด้วยเนื่องจากจะมีเพียง Thread เดียวเท่านั้นที่เข้าถึง Kernel
+
+One-to-One
+สามารถทำงานพร้อมกัน ในขณะที่ Many-to-One ทำไม่ได้ แต่มีข้อจำกัดที่ว่า Kernel Thread ต้องมีจำนวนการรองรับ User Thread ได้หมด
+
+Many-to-Many
+เป็นรูปแบบที่ผู้ใช้สามารถสร้าง Thread ได้ตามที่เขาต้องการแต่จะไม่สามารถทำงานพร้อมกันได้ ในขณะที่รูปแบบอื่น ตัว OS จะเป็นตัวกำหนด
+
+Two-level Model
+เป็นรูปแบบที่มีความคล้ายกับ Many-to-Many แต่สามารถลำดับความสำคัญของ Thread เพื่อนำมาใช้กับรูปแบบ One-to-One ได้
+
+Deadlock State
+Deadlock State คือสภาวะที่ Process หนึ่งโดนบล็อกการทำงานโดยมีสาเหตุมาจากใน Process นั้น มี Process ตัวหนึ่งรอรับการใช้ทรัพยากรจากระบบ แต่ทรัพยากรที่ต้องการนั้นถูก Process ตัวอื่นใช้งานอยู่ ทำให้เกิดการWaitซึ่งสามารถอธิบายการทำงานได้คร่าวๆ คือ
+ในกรณีที่เรามี Process อยู่ 2 ตัว โดยเรากำหนดให้เป็น Process1 และ Process2 ซึ่งแต่ละตัว ต่างครอบครองทรัพยาการอยู่กันคนละตัว แต่ทั้งคู่ต้องการทรัพยากรจากอีกฝั่ง ที่จะทำให้การทำงานเสร็จสมบูรณ์ ซึ่งทรัพยากรนั้นกำลังถูกใช้งานจากอีก Process อยู่เช่นกัน ส่งผลให้ทั้ง 2 Process ต้องรอซึ่งกันและกัน ไม่สามารถทำงานต่อได้
+
+Deadlock Characterization
+ลักษณะของDeadlock State มีด้วยกัน 4 อย่าง ซึ่งการเกิดDeadlock State จะเกิดขึ้นได้เมื่อ 4 อย่างนี้เกิดพร้อมกัน
+- Mutual exclusion คือ เหตุการณ์ที่ Process หนึ่ง สามารถถือครองทรัพยากรตัวหนึ่งได้ในขณะใดขณะหนึ่ง ซึ่งในขณะนั้น Process ตัวอื่นจะไม่สามารถใช้ทรัยากรตัวนั้นได้
+- Hold and wait คือ เหตุการณ์ที่ Process หนึ่ง ถือครองทรัพยากรไว้แล้ว และทำการร้องขอทรัพยากรอีกตัวที่กำลังถูกใช้อยู่ ส่งผลให้ Process นั้น เกิดการรอ
+- No Preemptive คือ เหตุการณ์ที่ทรัพยากรจะถูกปลดปล่อยไปให้ Process อื่นใช้งานต่อ เมื่อ Process เดิมที่ถือครองใช้งานเสร็จแล้ว
+- Circular wait คือ เหตุการณ์ที่ Process หลายๆตัว ต่างรอทรัพยากรจาก Process อีกตัว กันเป็นวงกลม ยกตัวอย่างเช่น P1 รอ P2 P2 รอ P3 และ P3 รอ P1
+
+Deadlock Prevention
+การป้องDeadlock State โดยจะป้องกันในช่วงของการแจกจ่ายในส่วนของทรัพยากรให้แก่ Process โดยมีแนวคิดให้เงื่อนไขจาก 1 ใน 4 ของ Deadlock Characterization ไม่เกิดขึ้น ซึ่งมีวิธีการป้องกันดังนี้
+- ทำให้ Mutual exclusion ไม่เกิดขึ้น โดยการยอมให้ Process สามารถเข้าถึงทรัพยากรตัวเดียวกัน ได้หลายๆ Process
+- ทำให้ไม่มีการ Hold and wait โดยการให้ Process ใช้งานทรัพยากรเดิมให้เสร็จก่อน จึงจะสามารถร้องขอทรัพยากรตัวอื่น มาใช้งานได้
+- ทำให้เป็น Preemptive โดยเมื่อ แล้ว Process ที่ถือครองทรัพยากรอยู่แล้วเกิดทำการร้องขอทรัพยากรเพิ่ม ซึ่งการขอครั้งนั้นไม่สำเร็จ Process นั้นจะทำการปล่อยทรัพยากรทั้งหมดไปยังส่วนที่เก็บทรัพยากรที่ไม่สามารถแจกจ่ายโดย และ process นี้จะสามารถกลับมาทำงานได้ก็ต่อเมื่อทรัพยากรที่ต้องการ สามารถแจกจ่ายได้ครบ
+-  ทำให้ไม่มี Circular wait โดยจะกำหนดเลขลำดับให้แก่ Process และทรัพยากร ซึ่งวิธีนี้จะเป็นการกำหนดลำดับความสำคัญ ในการร้องขอทรัพยากรสำหรับ Process
+
+
+The Deadlock Detection Algorithm By geeksforgeeks
+
+Steps of Algorithm:
+Let Work and Finish be vectors of length m and n respectively. Initialize Work= Available. For i=0, 1, …., n-1, if Requesti = 0, then Finish[i] = true; otherwise, Finish[i]= false.
+Find an index i such that both
+a) Finish[i] == false
+b) Requesti <= Work
+If no such i exists go to step 4.
+Work= Work+ Allocationi
+Finish[i]= true
+Go to Step 2.
+If Finish[i]== false for some i, 0<=i<n, then the system is in a deadlocked state. Moreover, if Finish[i]==false the process Pi is deadlocked.
+
+Reference
+https://medium.com/@jakee.indapanya/what-the-fork-%E0%B8%89%E0%B8%9A%E0%B8%B1%E0%B8%9A%E0%B8%9E%E0%B8%A3%E0%B8%B8%E0%B9%88%E0%B8%87%E0%B8%99%E0%B8%B5%E0%B9%89%E0%B8%88%E0%B8%B0%E0%B8%AA%E0%B8%AD%E0%B8%9A-1697128a213
+https://medium.com/@Do_Nutchasan/%E0%B9%80%E0%B8%A3%E0%B8%B2%E0%B8%A1%E0%B8%B2%E0%B9%80%E0%B8%82%E0%B9%89%E0%B8%B2%E0%B9%83%E0%B8%88-process-%E0%B8%81%E0%B8%B1%E0%B8%99%E0%B8%94%E0%B8%B5%E0%B8%81%E0%B8%A7%E0%B9%88%E0%B8%B2-part-2-4e10e3a1bf7d
+https://teerachati.files.wordpress.com/2010/11/e0b981e0b89ce0b899e0b89ae0b8a3e0b8b4e0b8abe0b8b2e0b8a3e0b881e0b8b2e0b8a3e0b8aae0b8ade0b899e0b89be0b8a3e0b8b0e0b888e0b8b3e0b89ae0b8973.pdf
+https://www.geeksforgeeks.org/deadlock-detection-algorithm-in-operating-system/
